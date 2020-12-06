@@ -1,0 +1,22 @@
+{
+  "name": "tiny-vue",
+  "version": "1.0.0",
+  "description": "一个微型的 vue.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonny-wei/tiny-vue.git"
+  },
+  "keywords": [
+    "vue"
+  ],
+  "author": "jonny-wei",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jonny-wei/tiny-vue/issues"
+  },
+  "homepage": "https://github.com/jonny-wei/tiny-vue#readme"
+}
