@@ -29,12 +29,13 @@ export class Observer {
     }
   }
   /**
-   * 观测 Object：遍历对象的所有属性为其添加getter/setter
+   * 观测 Object：遍历对象的所有属性为其添加get/set
    * @param obj
    */
   walk(obj: Object) {
     const keys: any = Object.keys(obj);
     for (const key in keys) {
+      // 过滤自身以外的属性 即不遍历原型上的属性
       if (Object.prototype.hasOwnProperty.call(keys, key)) {
         defineRreactive(obj, key);
       }
@@ -122,7 +123,7 @@ export function observe(value: any): Observer | void {
  * 遍历Map时，可以获得整个键值对对象
  * forEach，map:
  * 只能遍历数组，typeof index or key = number，不可遍历自定义或原型链上的自定义属性
- * 根据index遍历，forEach从头遍历到尾，不能使用break、continue和return跳出循环体，for 可以;
+ * 根据index遍历，forEach从头遍历到尾，不能使用break、continue跳出循环体，for 可以;
  * map返回一个新数组,新数组的内容是回调函数的返回值，可以用来克隆数组
  * map参数->map((当前元素,当前索引,当前被调用的数组)=>{})
  *
@@ -148,7 +149,7 @@ export function def(obj: Object, key: string, val?: any): void {
  * @param val
  */
 export function defineRreactive(obj: Object, key: string, val?: any): void {
-  // 如果是不可配置属性，则搞不了响应式，直接结束
+  // 如果是不可配置属性，则搞不了响应式，直接结束程序
   const property = Object.getOwnPropertyDescriptor(obj, key)
   if (property && property.configurable === false) {
     return
