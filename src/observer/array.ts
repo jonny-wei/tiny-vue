@@ -85,7 +85,7 @@ const methodsToPatch: Array<string> = [
  * 这些可以改变数组自身的7个方法遍历，逐个进行封装重写。
  */
 methodsToPatch.forEach(function (method: string): void {
-  // 获取原型上的方法
+  // 缓存原生方法
   const original = arrayProto[method];
   def(arrayProto, method, function mutator(...args: any[]): Array<any> | void {
     // 改变this指向 拦截

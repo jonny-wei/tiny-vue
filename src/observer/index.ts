@@ -1,6 +1,7 @@
 import VNode from "../vdom/vnode";
 import { arrayMethods } from "./array";
 import { hasProto, isObject, hasOwn } from "../util/index";
+import Dep from "./dep";
 
 const arrayKeys: Array<string> = Object.getOwnPropertyNames(arrayMethods);
 
@@ -136,7 +137,7 @@ export function def(obj: Object, key: string, val?: any): void {
   Object.defineProperty(obj, key, {
     value: val, // 值：对象可以通过.语法访问其属性值
     writable: true, // 可写性：控制值value是否可以修改，默认true可修改
-    enumerable: true, // 可枚举型：控制是否可以被for...in遍历到，默认true不能被for...in 遍历此属性(key)，但可用.语法访问
+    enumerable: false, // 可枚举性：控制是否可以被for...in遍历到，默认true不能被for...in 遍历此属性(key)，但可用.语法访问
     configurable: true, // 可配置性：控制是否可以修改其他特性，是否可以删除属性，修改不可逆，默认true
   });
 }
@@ -162,11 +163,13 @@ export function defineRreactive(obj: Object, key: string, val?: any): void {
   if (typeof val === "object") {
     new Observer(val);
   }
+  const dep:Dep = new Dep();
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter(): any {
       // 在get中收集依赖
+      dep.depend();
       return val;
     },
     set: function reasctiveSetter(newVal: any): void {
@@ -175,6 +178,7 @@ export function defineRreactive(obj: Object, key: string, val?: any): void {
         return;
       }
       val = newVal;
+      dep.notify();
     },
   });
 }
