@@ -1,6 +1,12 @@
 /**
+ * 数组如何观测？
  * 重写数组原型上的方法
  * 可以改变数组的7个方法
+ * 
+ * 不足之处
+ * 只要是通过数组原型上的方法对数组进行操作就都可以侦测到，但是别忘了，我们在日常开发中，还可以通过数组的下标来操作数据 
+ * eg：arr.length = 0    // 通过修改数组长度清空数组
+ * 为了解决这一问题，Vue 增加了两个全局API: Vue.set 和 Vue.delete
  *
  * 知识点：常用数组方法操作Api
  *
@@ -93,6 +99,7 @@ methodsToPatch.forEach(function (method: string): void {
     // 获取Observer实例
     const ob: Observer = this.__ob__;
     let inserted: any[]; // 改变数组的元素,待添加响应式的元素
+    // 数组新增元素的侦测
     switch (method) {
       case "push":
       case "unshift":
@@ -102,7 +109,13 @@ methodsToPatch.forEach(function (method: string): void {
         inserted = args.slice(2); // splice()有3个参数，第三个参数就是需要添加的元素，拷贝它
         break;
     }
-    if(inserted) ob.observeArray(inserted); // 调用Observer实例的observeArray方法，遍历数组中每一项(inserted)为其添加响应式
+    /**
+     * 调用Observer实例的observeArray方法，遍历数组中每一项(inserted)为其添加响应式 
+     * 调用observe函数将新增的元素转化成响应式
+     */
+    if(inserted) ob.observeArray(inserted);
+    // notify change
+    ob.dep.notify()
     return result
   });
 });

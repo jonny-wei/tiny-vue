@@ -1,25 +1,30 @@
+/**
+ * 如何实现数据驱动，使数据可观测？
+ * Observer 观察者类
+ *
+ * vue 响应式系统机制，数据驱动，依赖收集
+ * 原理：vue2使用Object.defineProperty()对象属性级别的拦截，为每个属性设置getter/setter
+ */
+
 import VNode from "../vdom/vnode";
 import { arrayMethods } from "./array";
 import { hasProto, isObject, hasOwn } from "../util/index";
 import Dep from "./dep";
 
 const arrayKeys: Array<string> = Object.getOwnPropertyNames(arrayMethods);
-
-/**
- * Observer 观察者类
- * vue 响应式系统机制，数据驱动，依赖收集
- * 原理：vue2使用Object.defineProperty()对象属性级别的拦截，为每个属性设置getter/setter
- */
 export class Observer {
   value: any;
+  dep: Dep;
   constructor(value: any) {
     this.value = value; //拿到需要做成响应式的数据(状态)
+    this.dep = new Dep(); // 实例化一个依赖收集器
     // 标记此value已经被搞成响应式了,避免重复操作，值为该value的Observers实例
     def(value, "__ob__", this);
     // 因为defineProrerty是Object原型上的方法,Array无法使用这个方法,所以对象与数组有不同的观测机制
     if (Array.isArray(value)) {
       // Array 类型处理逻辑
       // 使 Array 可观测，原理：定义数组方法拦截器，重写Array原型中改变数组自身内容的方法的7个方法
+      // Array型数据还是在getter中收集依赖。因为我们经常在组件中这样 data(){return {响应式对象}} 外层还是一个{}包裹
       hasProto
         ? protoAugment(value, arrayMethods)
         : copyAugment(value, arrayMethods, arrayKeys);
@@ -98,7 +103,7 @@ export function observe(value: any): Observer | void {
   if (hasOwn(value, "__ob__") && value.__ob__ instanceof Observer) {
     ob = value.__ob__;
   } else {
-    ob = new Observer(value);
+    ob = new Observer(value); // Array的深度侦测 
   }
   return ob;
 }
@@ -145,42 +150,70 @@ export function def(obj: Object, key: string, val?: any): void {
 /**
  * defineRreactive
  * 为对象的属性定义响应式（核心）
+ * 通过Object.defineProperty方法实现了对object数据的可观测，
+ * 但是这个方法仅仅只能观测到object数据的取值及设置值，
+ * 当我们向object数据里添加一对新的key/value或删除一对已有的key/value时，它是无法观测到的，
+ * 导致当我们对object数据添加或删除值时，无法通知依赖，无法驱动视图进行响应式更新。
+ * 
+ * Vue也注意到了这一点，为了解决这一问题，Vue 增加了两个全局API: Vue.set 和 Vue.delete
  * @param obj
  * @param key
  * @param val
  */
 export function defineRreactive(obj: Object, key: string, val?: any): void {
   // 如果是不可配置属性，则搞不了响应式，直接结束程序
-  const property = Object.getOwnPropertyDescriptor(obj, key)
+  const property = Object.getOwnPropertyDescriptor(obj, key);
   if (property && property.configurable === false) {
-    return
+    return;
   }
   // 参数处理，只传了obj和key，那么val = obj[key]
   if (arguments.length === 2) {
     val = obj[key];
   }
-  // obj对象里嵌套对象,递归添加响应式, 深度侦测 Object
+  // obj对象里嵌套对象,递归添加响应式, Object的深度侦测 
   if (typeof val === "object") {
     new Observer(val);
   }
-  const dep:Dep = new Dep();
+  const dep: Dep = new Dep(); // 实例化依赖收集器
+  const getter = property && property.get
+  const setter = property && property.set
+  let childOb = observe(val);
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter(): any {
       // 在get中收集依赖
-      dep.depend();
-      return val;
+      const value = getter ? getter.call(obj) : val
+      if (Dep.target) {
+        dep.depend();
+        if (childOb) {
+          childOb.dep.depend();
+          if (Array.isArray(value)) {
+            dependArray(value)
+          }
+        }
+      }
+      return value;
     },
     set: function reasctiveSetter(newVal: any): void {
       // 在set中通知依赖
-      if (val === newVal) {
+      const value = getter ? getter.call(obj) : val
+      if (newVal === value || (newVal !== newVal && value !== value)) {
         return;
       }
       val = newVal;
+      childOb = observe(newVal)
       dep.notify();
     },
   });
 }
 
-
+export function dependArray(value: Array<any>): void{
+  for (let e, i = 0, l = value.length; i < l; i++) {
+    e = value[i]
+    e && e.__ob__ && e.__ob__.dep.depend()
+    if (Array.isArray(e)) {
+      dependArray(e)
+    }
+  }
+}
