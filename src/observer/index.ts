@@ -176,7 +176,6 @@ export function defineRreactive(obj: Object, key: string, val?: any): void {
   }
   const dep: Dep = new Dep(); // 实例化依赖收集器
   const getter = property && property.get
-  const setter = property && property.set
   let childOb = observe(val);
   Object.defineProperty(obj, key, {
     enumerable: true,
