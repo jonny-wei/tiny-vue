@@ -28,3 +28,32 @@ export function isObject (obj: any): boolean {
 export function hasOwn (obj: Object | any[], key: string): boolean {
   return Object.prototype.hasOwnProperty.call(obj, key)
 }
+
+/**
+ * 判断是否有值
+ * @param v 
+ */
+export function isDef (v: any): boolean{
+  return v !== undefined && v !== null
+}
+
+/**
+ * 判断是否为 true
+ * @param v 
+ */
+export function isTrue (v: any): boolean {
+  return v === true
+}
+
+/**
+ * 检查是否是原始类型
+ */
+export function isPrimitive (value: any): boolean {
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'symbol' ||
+    typeof value === 'bigint' ||
+    typeof value === 'boolean'
+  )
+}

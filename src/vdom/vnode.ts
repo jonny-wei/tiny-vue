@@ -1,5 +1,5 @@
 /**
- * 如何实现虚拟DOM(Virtual DOM)?
+ * 如何描述虚拟DOM(Virtual DOM)?
  * VNode 类
  * 
  * 虚拟DOM
@@ -35,6 +35,7 @@ export default class VNode {
     ns: string | void; // 当前节点的名字空间
     context: Component | void; // 当前组件节点对应的Vue实例(作用域)
     fnContext: Component | void; // 函数式组件对应的Vue实例
+    fnOptions: ?ComponentOptions;
     componentOptions: VNodeComponentOptions | void; // 组件的option选项
     componentInstance: Component | void; // 组件实例
 
@@ -56,18 +57,19 @@ export default class VNode {
         componentOptions?: VNodeComponentOptions,
         asyncFactory?: Function
     ){
-        this.tag = tag;
-        this.data = data;
-        this.children = children;
-        this.text = text;
-        this.key = data && data.key;
+        this.tag = tag
+        this.data = data
+        this.children = children
+        this.text = text
+        this.key = data && data.key
         this.elm = elm
         this.ns = undefined
         this.context = context
         this.fnContext = undefined
-        this.componentOptions = componentOptions;
-        this.componentInstance = undefined;
-        this.parent = undefined;
+        this.fnOptions = undefined
+        this.componentOptions = componentOptions
+        this.componentInstance = undefined
+        this.parent = undefined
         this.raw = false
         this.isStatic = false
         this.isRootInsert = true
@@ -85,6 +87,17 @@ export default class VNode {
  * 根据不同的VNode类型，描述真实DOM
  * VNode可以描述的多种节点类型，它们本质上都是VNode类的实例，只是在实例化的时候传入的属性参数不同而已
  */
+
+ /**
+  * 创建注释节点
+  * @param text 
+  */
+export const createEmptyVNode = (text: string = '') => {
+    const node = new VNode()
+    node.text = text
+    node.isComment = true
+    return node
+ }
 
  /**
   * 文本节点
