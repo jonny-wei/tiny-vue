@@ -1,7 +1,7 @@
 {
   "name": "tiny-vue",
   "version": "1.0.0",
-  "description": "一个微型的 vue.js",
+  "description": "学习 vue.js",
   "main": "index.js",
   "scripts": {
     "test": "test"
